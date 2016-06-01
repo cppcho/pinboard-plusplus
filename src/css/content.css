@@ -1,0 +1,9 @@
+h3 > a.pinboard-plusplus-widget {
+  display: inline-block;
+  vertical-align: top;
+  margin: 0 0 0 5px;
+  width: 18px;
+  height: 18px;
+  background-repeat: no-repeat;
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABGdBTUEAALGPC/xhBQAAAkxJREFUOBGdk81rE0EYxp+d2aQlpdF16Raxx0gTG4VQsHqJpCdF8KDQg+L/IKgXqVUE8QsREUUKUj8utvRQq4iKjfiF2ta02LRCchEsYppIk6Zd1myy405Nms0mQuxc9v16fvO+szPAf65hQi7cJaTXlAlWKbE69dgMUH0Ox+kBQvrssHr0mAQco5Te/ixJqXwwyL60tKRN2JkSjNZDGRTFkEjpi0B7+x6Px9NMCEGrojTS5eXATk1reMTYm7U5zwJuvygeXwReTuTzH/sB/RXQqFJ6Z4sk7evw+STR4ajYlxkGJsfHtaimnV8D8RZ5qx7GeqnLlVJzuV8NhDRv83o3b5JlsYJQdL7OzS1NJZMjOcayVhBPc1hfpywf2+73b4RgT5dxS5lMYWx6+vXBQmG/GdWqzojP26VpTmLOz8+hFoyPNBGJ/Lyk6z3fgATHV4F4cMSE7TJhoqoGFA6zrXgslg1nMpf7GXtcSv3rHjFiGFcX02mV7w5m3p7iWslmWSyRmDlpGDfNUDlRKrB/n1MaXujoyH9wuZIzipJmoRBj3d3sfVPTj73ADnt9zY5GRfFamyzvjsbj8wOqemQqlboRnZ3N8M40XV95BsTtoCp/iNKj7wjJPxXFSBDYWiwQ7hFyjnf2ye1e6ALaqoTWwBDQ+VYQfj+kdHgDIFlzpr0KMzfRL1J62JYru/cBZUwQvl//+36q/lSxchX2gNJbZaXF4g/yiSCETwA9ZrjmlbCUC4cAr8Uvm4NO55UDQKAcWYd1CvD7gdZ1SCskfwDVPdBlbAk1lgAAAABJRU5ErkJggg==)
+}

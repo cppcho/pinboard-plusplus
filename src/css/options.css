@@ -1,0 +1,27 @@
+* {
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
+
+.options__header {
+  margin: 0 0 10px 0;
+}
+
+.options__token-error {
+  color: #d03232;
+  display: block;
+  width: 100%;
+  margin: -5px 0 5px 0;
+}
+
+.options__body input[type="text"] {
+  display: block;
+  width: 100%;
+  margin: 0 0 10px 0;
+}
+
+.options__checkbox {
+  display: block;
+  width: 100%;
+  margin: 0 0 10px 0;
+}

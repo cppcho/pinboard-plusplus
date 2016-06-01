@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <link rel="stylesheet" href="../css/popup.css" />
+</head>
+
+<body>
+  <div class="popup">
+
+    <div id="setup-api-token" class="popup__status" style="display: none;">
+      <p><a href="#" class="js-go-to-options">setup API token</a></p>
+    </div>
+    <div id="invalid-api-token" class="popup__status" style="display: none;">
+      <p><a href="#" class="js-go-to-options">invalid API token</a></p>
+    </div>
+
+    <div id="invalid-url" class="popup__status" style="display: none;">
+      <p>invalid URL</p>
+    </div>
+
+    <form id="form" class="popup__form" style="display: none;">
+      <div class="popup__header">
+        <a href="https://pinboard.in" tabindex="-1" target="_blank">Pinboard</a><span id="user-info"></span>
+        <span id="status" class="popup__top-right-status"><span>
+      </div>
+
+      <div class="popup__body">
+        <input type="url" id="url" placeholder="URL" readonly value="" tabindex="-1" name="url" />
+        <input type="text" id="title" placeholder="title" readonly tabindex="-1" name="title" />
+        <textarea id="description" placeholder="description" rows="4" tabindex="1" name="description" ></textarea>
+        <input type="text" id="tags" placeholder="tags" autocomplete="off" spellcheck="false" tabindex="2" name="tags" />
+        <div class="popup__body-checkbox">
+          <input type="checkbox" id="private" tabindex="3" name="private" value="on" />private
+        </div>
+        <div class="popup__body-checkbox">
+          <input type="checkbox" id="read_later" tabindex="4" name="read_later" value="on" />read later
+        </div>
+      </div>
+      <div class="popup__footer">
+        <button type="submit" id="done" class="popup__footer-button" tabindex="-1">done</button>
+        <button type="button" id="remove" class="popup__footer-button popup__footer-button--right" tabindex="-1" style="display: none;">remove</button>
+      </div>
+    </form>
+  </div>
+  <script src="../js/lib/jquery.min.js"></script>
+  <script src="../js/popup.js"></script>
+</body>
+
+</html>
