@@ -20,7 +20,10 @@ function processJsFile(fileName, debug) {
   if (!debug) {
     uglifyConfigs = {
       compress: {
-        pure_funcs: ['console.log'],
+        pure_funcs: [
+          'console.log',
+          'console.error',
+        ],
       },
     };
   }
