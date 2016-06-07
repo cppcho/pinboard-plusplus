@@ -1,4 +1,5 @@
 .DS_Store
+/archive
 /archive.zip
 /dist
 /node_modules
