@@ -5,114 +5,161 @@ $(document).ready(() => {
   const ENTER_KEY = 13;
 
   const $authTokenInput = $('#auth_token');
-  const $authTokenError = $('#auth_token_error');
   const $privateInput = $('#private');
   const $readLaterInput = $('#read_later');
-  const $saveButton = $('#save');
-  const $statusArea = $('#status');
-  let statusTimeoutID = null;
+  const $pinInGoogleInput = $('#pin_in_google');
+  const $status = $('#status');
 
-  function updateAuthTokenError(options) {
-    console.log(options);
-    if (options[Constants.OPTIONS_AUTH_TOKEN].trim().length > 0 &&
-      !options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID]) {
-      $authTokenError.show();
-    } else {
-      $authTokenError.hide();
+  let isShowingInvalidTokenStatus = false;
+  let statusTimeoutId;
+
+  /**
+   * Show "Invalid API token" status message
+   * Has higher priority than "Saved" message
+   */
+  function showInvalidTokenStatus() {
+    $status.text('Invalid API token');
+    $status.addClass('options__status--error');
+    isShowingInvalidTokenStatus = true;
+    clearTimeout(statusTimeoutId);
+  }
+
+  /**
+   * Clear "Invalid API token status message" if any
+   */
+  function hideInvalidTokenStatus() {
+    if (isShowingInvalidTokenStatus) {
+      $status.text('');
+      $status.removeClass('options__status--error');
+      isShowingInvalidTokenStatus = false;
+      clearTimeout(statusTimeoutId);
     }
   }
 
-  function showStatus() {
-    console.log('show status');
-
-    clearTimeout(statusTimeoutID);
-
-    $statusArea.text('ok');
-    statusTimeoutID = setTimeout(() => {
-      console.log('clear status');
-
-      $statusArea.text('');
-    }, 1000);
+  /**
+   * Show "Saved" status message for 1 second
+   * only when "Invalid API token" is not showing
+   */
+  function showSavedStatus() {
+    if (!isShowingInvalidTokenStatus) {
+      $status.text('Saved');
+      clearTimeout(statusTimeoutId);
+      statusTimeoutId = setTimeout(() => {
+        if (!isShowingInvalidTokenStatus) {
+          $status.text('');
+        }
+      }, 1000);
+    }
   }
 
-  function saveOptions() {
-    console.log('save options');
+  /**
+   * Check if the options has the same state as the input fields
+   */
+  function verifyOptions(options) {
+    return (
+      options[Constants.OPTIONS_AUTH_TOKEN] === $authTokenInput.val().trim() &&
+      options[Constants.OPTIONS_PRIVATE] === $privateInput.prop('checked') &&
+      options[Constants.OPTIONS_READ_LATER] === $readLaterInput.prop('checked') &&
+      options[Constants.OPTIONS_PIN_IN_GOOGLE] === $pinInGoogleInput.prop('checked')
+    );
+  }
 
+  /**
+   * Validate the API token and save options to storage
+   */
+  function saveOptions() {
     const trimmedAuthToken = $authTokenInput.val().trim();
     $authTokenInput.val(trimmedAuthToken);
 
-    const options = {
+    const inputOptions = {
       [Constants.OPTIONS_AUTH_TOKEN]: trimmedAuthToken,
       [Constants.OPTIONS_PRIVATE]: $privateInput.prop('checked'),
       [Constants.OPTIONS_READ_LATER]: $readLaterInput.prop('checked'),
+      [Constants.OPTIONS_PIN_IN_GOOGLE]: $pinInGoogleInput.prop('checked'),
     };
 
-    // check if auth token is valid
-    const p = new Promise((resolve) => {
-      if (trimmedAuthToken.length > 0) {
-        Api.getLastUpdated(trimmedAuthToken)
+    // 1. Get options from storage
+    // 2. Check if auth token is changed
+    // 3. If no, save the options to storage directly
+    // 4. Otherwise query Pinboard to check the auth token is valid before saving
+
+    const q = new Promise((resolve) => {
+      if (inputOptions[Constants.OPTIONS_AUTH_TOKEN].length > 0) {
+        Api.getLastUpdated(inputOptions[Constants.OPTIONS_AUTH_TOKEN])
           .then(() => {
-            options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = true;
+            inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = true;
             resolve();
           })
           .catch(() => {
-            options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = false;
+            inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = false;
             resolve();
           });
       } else {
-        options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = false;
+        inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = false;
         resolve();
       }
     });
-    p.then(() => {
-      // then save options to storage
-      chrome.storage.sync.set(options, () => {
-        console.log('chrome.storage.sync.set done');
 
-        if (chrome.runtime.lastError) {
-          console.error(chrome.runtime.lastError.message);
+    const p = new Promise((resolve) => {
+      chrome.storage.sync.get(Constants.OPTIONS_DEFAULT, (options) => {
+        // if auth token is unchange, proceed to next step directly
+        if (options[Constants.OPTIONS_AUTH_TOKEN] === inputOptions[Constants.OPTIONS_AUTH_TOKEN]) {
+          inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID];
+          resolve();
+        } else {
+          // otherwise if auth token is updated, query Pinboard to check the auth token
+          resolve(q);
         }
-
-        showStatus();
-        updateAuthTokenError(options);
       });
+    });
+
+    p.then(() => {
+      if (verifyOptions(inputOptions)) {
+        chrome.storage.sync.set(inputOptions, () => {
+          if (inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID]) {
+            hideInvalidTokenStatus();
+            showSavedStatus();
+          } else {
+            showInvalidTokenStatus();
+          }
+        });
+      }
     });
   }
 
-  console.log('options ready');
+  // initialize the options page
 
-  // restore options from storage
-  chrome.storage.sync.get(Constants.OPTIONS_DEFAULT, (items) => {
-    console.log('chrome.storage.sync.get done', items);
+  // load options data from storage
+  chrome.storage.sync.get(Constants.OPTIONS_DEFAULT, (options) => {
+    // set input field values
+    $authTokenInput.val(options[Constants.OPTIONS_AUTH_TOKEN]);
+    $privateInput.prop('checked', options[Constants.OPTIONS_PRIVATE]);
+    $readLaterInput.prop('checked', options[Constants.OPTIONS_READ_LATER]);
+    $pinInGoogleInput.prop('checked', options[Constants.OPTIONS_PIN_IN_GOOGLE]);
 
-    if (chrome.runtime.lastError) {
-      console.error(chrome.runtime.lastError.message);
+    if (options[Constants.OPTIONS_AUTH_TOKEN].length > 0 &&
+      !options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID]) {
+      showInvalidTokenStatus();
     }
 
-    // set dom values / properties
-    $authTokenInput.val(items[Constants.OPTIONS_AUTH_TOKEN]);
-    $privateInput.prop('checked', items[Constants.OPTIONS_PRIVATE]);
-    $readLaterInput.prop('checked', items[Constants.OPTIONS_READ_LATER]);
+    // event handlers
 
-    updateAuthTokenError(items);
-
-    $authTokenInput.select();
-
-    // on enter key pressed in auth_token input
-    $authTokenInput.keypress((event) => {
-      if (event.which === ENTER_KEY) {
-        console.log('enter key pressed');
-
-        event.preventDefault();
+    $authTokenInput.keypress((e) => {
+      if (e.which === ENTER_KEY) {
+        e.preventDefault();
 
         saveOptions();
         $authTokenInput.select();
       }
     });
 
-    // on save button clicked
-    $saveButton.on('click', () => {
-      console.log('save button clicked');
+    $authTokenInput.blur((e) => {
+      e.preventDefault();
+
+      saveOptions();
+    });
+
+    $(':checkbox').change(() => {
       saveOptions();
     });
   });

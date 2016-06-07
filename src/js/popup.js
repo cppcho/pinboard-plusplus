@@ -1,6 +1,6 @@
 import './tagcomplete';
 import * as Constants from './constants';
-import moment from 'moment';
+import Utils from './utils';
 
 // autofocus attribute is not working on chrome extension
 // https://code.google.com/p/chromium/issues/detail?id=111660#c7
@@ -13,12 +13,10 @@ if (location.search !== '?foo') {
 
 function getSelectedText() {
   return new Promise((resolve) => {
-    console.log('get selected text');
     try {
       chrome.tabs.executeScript({
         code: 'window.getSelection().toString();',
       }, (selection) => {
-        console.log('selected text', selection);
         if (selection && selection.length > 0) {
           resolve(selection[0]);
         }
@@ -31,23 +29,23 @@ function getSelectedText() {
 
 function getOptionsAndTab() {
   return new Promise((resolve) => {
-    console.log('getOptionsAndTab');
-    chrome.runtime.sendMessage({
-      type: Constants.ACTION_GET_POPUP_INFO_1,
-    }, (info) => {
-      console.log('popup info', info);
-      resolve(info);
+    chrome.storage.sync.get(Constants.OPTIONS_DEFAULT, (options) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        console.log(options, tabs);
+
+        const tab = tabs[0];
+        resolve({ options, tab });
+      });
     });
   });
 }
 
-function getTagsAndBookmark() {
+function getTagsAndBookmark(url) {
   return new Promise((resolve) => {
-    console.log('getTagsAndBookmark');
     chrome.runtime.sendMessage({
-      type: Constants.ACTION_GET_POPUP_INFO_2,
+      type: Constants.ACTION_GET_POPUP_INFO,
+      url,
     }, (info) => {
-      console.log('popup info', info);
       resolve(info);
     });
   });
@@ -65,8 +63,56 @@ function setupGoToOptionsLink() {
   });
 }
 
+function setBodyClass(bookmarked) {
+  if (bookmarked) {
+    $('body').addClass('popup--bookmarked');
+  } else {
+    $('body').removeClass('popup--bookmarked');
+  }
+}
+
+function submitForm($form) {
+  setBodyClass(true);
+
+  const serializedArray = $form.serializeArray();
+  const formData = {
+    url: '',
+    title: '',
+    description: '',
+    tags: '',
+    private: '',
+    read_later: '',
+  };
+
+  serializedArray.forEach((v) => {
+    formData[v.name] = v.value;
+  });
+
+  chrome.runtime.sendMessage({
+    type: Constants.ACTION_ADD_BOOKMARK,
+    url: formData.url,
+    title: formData.title,
+    description: formData.description,
+    tags: formData.tags,
+    private: formData.private === 'on',
+    readLater: formData.read_later === 'on',
+  }, (result) => {
+    console.log(result);
+    window.close();
+  });
+}
+
 $(document).ready(() => {
-  console.log('popup ready');
+  setupGoToOptionsLink();
+
+  const $form = $('#form');
+
+  // Skip the rest for non-form popup
+  if ($form.length === 0) {
+    return;
+  }
+
+  const ENTER_KEY = 13;
 
   const $status = $('#status');
   const $urlInput = $('#url');
@@ -77,166 +123,103 @@ $(document).ready(() => {
   const $readLaterCheckBox = $('#read_later');
   const $removeButton = $('#remove');
   const $doneButton = $('#done');
-  const $form = $('#form');
-  const $setupApiToken = $('#setup-api-token');
-  const $invalidApiToken = $('#invalid-api-token');
-  const $invalidUrl = $('#invalid-url');
-  const $userInfo = $('user-info');
-
-  let options;
+  const $userInfo = $('#user-info');
 
   // setup popup data
   getOptionsAndTab()
     .then((info) => {
-      console.log('info', info);
+      const options = info.options;
+      const tab = info.tab;
 
-      options = info.options;
-
-      const authToken = info.options[Constants.OPTIONS_AUTH_TOKEN];
-
-      // empty auth token
-      if (authToken.length === 0) {
-        $setupApiToken.show();
-        setupGoToOptionsLink();
-
-        // invalid auth token
-      } else if (!info.options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID]) {
-        $invalidApiToken.show();
-        setupGoToOptionsLink();
-
-        // invalid url
-      } else if (info.error === Constants.ERROR_INVALID_URL) {
-        $invalidUrl.show();
-
-        // valid url + valid token
-      } else {
-        $form.show();
-
-        // setup user info text
-        const username = authToken.split(':')[0];
-        $userInfo.text(` - ${username}`);
-
-        console.log(username);
-
-        return getTagsAndBookmark();  // url must be bookmarkable here
-      }
-
-      return null;
-    })
-    .then((info) => {
-      console.log(info);
-
-      if (info === null) {
+      // Should occur but for safety..
+      if (!options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] || !tab.url || !Utils.isBookmarkable(tab.url)) {
+        $form.empty();
         return;
       }
 
-      // set error message (if any)
-      if (info.error !== null) {
-        $status.text(info.error);
-      }
+      // Setup user name
+      const username = Utils.getUsernameFromAuthToken(options[Constants.OPTIONS_AUTH_TOKEN]);
+      $userInfo.text(` - ${username}`);
 
-      // set tag autocomplete
-      if (info.tags.length > 0) {
-        $tagsInput.tagcomplete({
-          tags: info.tags,
-        });
-      }
+      $urlInput.val(tab.url);
+      $titleInput.val(tab.title);
 
-      // focus the description box
-      $('#description').focus();
+      getTagsAndBookmark(tab.url)
+        .then((tagsAndBookmarkInfo) => {
+          const tags = tagsAndBookmarkInfo.tags;
+          const bookmark = tagsAndBookmarkInfo.bookmark;
+          const error = tagsAndBookmarkInfo.error;
 
-      let url = null;
+          let url = tab.url;
 
-      if (info.bookmark !== null) {
-        // bookmarked
+          // set error message (if any)
+          if (info.error !== null) {
+            $status.text(error);
+          }
 
-        const bookmark = info.bookmark;
+          // set tag autocomplete
+          if (tags.length > 0) {
+            $tagsInput.tagcomplete({
+              tags,
+            });
+          }
 
-        url = bookmark.href;
+          // setup form inputs
+          if (bookmark === null) {
+            getSelectedText()
+              .then((selection) => {
+                $descriptionInput.val(String(selection).trim());
+                $descriptionInput.select();
+              });
+            $privateCheckBox.prop('checked', options[Constants.OPTIONS_PRIVATE]);
+            $readLaterCheckBox.prop('checked', options[Constants.OPTIONS_READ_LATER]);
 
-        $urlInput.val(url);
-        $titleInput.val(bookmark.description);
-        $descriptionInput.val(bookmark.extended);
-        $tagsInput.val(bookmark.tags);
-        $privateCheckBox.prop('checked', bookmark.shared === 'no');
-        $readLaterCheckBox.prop('checked', bookmark.toread === 'yes');
+            setBodyClass(false);
+          } else {
+            url = bookmark.href;
 
-        $removeButton.show();
+            $urlInput.val(url);
+            $titleInput.val(bookmark.description);
+            $descriptionInput.val(bookmark.extended);
+            $tagsInput.val(bookmark.tags);
+            $privateCheckBox.prop('checked', bookmark.shared === 'no');
+            $readLaterCheckBox.prop('checked', bookmark.toread === 'yes');
 
-        $status.text(moment(info.bookmark.time).fromNow());
-      } else if (info.tab !== null) {
-        // not bookmarked
+            $removeButton.show();
 
-        const tab = info.tab;
+            setBodyClass(true);
 
-        url = tab.url;
+            const t = Utils.timeSince(bookmark.time);
+            const h = `https://pinboard.in/search/u:${username}?query=${encodeURIComponent(bookmark.href)}`;
+            $status.html(`<a href="${h}" target="_blank">bookmarked ${t}</a>`);
+          }
 
-        $urlInput.val(url);
-        $titleInput.val(tab.title);
-        getSelectedText()
-          .then((selection) => {
-            $descriptionInput.val(String(selection).trim());
-            $descriptionInput.select();
+          // bind events
+
+          $(':input').on('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.which === ENTER_KEY) {
+              e.preventDefault();
+              submitForm($form);
+            }
           });
-        $privateCheckBox.prop('checked', options[Constants.OPTIONS_PRIVATE]);
-        $readLaterCheckBox.prop('checked', options[Constants.OPTIONS_READ_LATER]);
-      }
 
-      // remove button
-      $removeButton.on('click', (e) => {
-        e.preventDefault();
+          $removeButton.on('click', (e) => {
+            e.preventDefault();
+            setBodyClass(false);
 
-        console.log('remove', url);
-
-        if (url) {
-          chrome.runtime.sendMessage({
-            type: Constants.ACTION_DELETE_BOOKMARK,
-            url,
-          }, (result) => {
-            console.log('delete bookmark', result);
-
-            // TODO
-
-            // close popup
-            window.close();
+            chrome.runtime.sendMessage({
+              type: Constants.ACTION_DELETE_BOOKMARK,
+              url,
+            }, (result) => {
+              console.log(result);
+              window.close();
+            });
           });
-        }
-      });
 
-      $doneButton.on('click', (e) => {
-        e.preventDefault();
-
-        const serializedArray = $form.serializeArray();
-        const formData = {
-          url: '',
-          title: '',
-          description: '',
-          tags: '',
-          private: '',
-          read_later: '',
-        };
-
-        serializedArray.forEach((v) => {
-          formData[v.name] = v.value;
+          $doneButton.on('click', (e) => {
+            e.preventDefault();
+            submitForm($form);
+          });
         });
-
-        console.log('formData: ', serializedArray);
-        console.log('formData: ', formData);
-
-        chrome.runtime.sendMessage({
-          type: Constants.ACTION_ADD_BOOKMARK,
-          url: formData.url,
-          title: formData.title,
-          description: formData.description,
-          tags: formData.tags,
-          private: formData.private === 'on',
-          readLater: formData.read_later === 'on',
-        }, (result) => {
-          console.log('add bookmark', result);
-
-          // TODO
-          window.close();
-        });
-      });
     });
 });

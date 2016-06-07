@@ -16,7 +16,7 @@ a {
 }
 
 .popup__form {
-  min-width: 400px;
+  min-width: 360px;
 }
 
 .popup {
@@ -29,22 +29,19 @@ a {
   margin-bottom: 10px;
 }
 
-.popup__header a {
+.popup__header .popup__header-title {
   font-weight: 800;
 }
 
 .popup__status {
   min-width: 100px;
   text-align: center;
+  color: #aaa;
+  white-space: nowrap;
 }
 
 .popup__top-right-status {
   float: right;
-  font-weight: 800;
-}
-
-.popup__status--error {
-  color: #d03232;
 }
 
 .popup__body {
@@ -107,4 +104,9 @@ a {
   background: #ddd;
   color: #333;
   font-weight: 600;
+}
+
+.popup--bookmarked .popup__body input[readonly] {
+  background-color: #fdf2f2;
+  opacity: 1;
 }

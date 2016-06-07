@@ -79,6 +79,15 @@ function buildMisc() {
     'node_modules/jquery/dist/jquery.min.js',
   ]).pipe(gulp.dest('src/js/lib'))
     .pipe(gulp.dest('dist/js/lib'));
+
+  gulp.src([
+    'src/js/lib/jquery.tooltipster.min.js',
+  ]).pipe(gulp.dest('dist/js/lib'));
+
+  gulp.src([
+    'src/css/lib/tooltipster.css',
+  ]).pipe(cssnano())
+    .pipe(gulp.dest('dist/css/lib'));
 }
 
 gulp.task('js', () => {
@@ -136,7 +145,6 @@ gulp.task('build:debug', ['clean'], () => {
 gulp.task('clean', () =>
   del([
     'dist/**',
-    'src/js/lib/**',
   ])
 );
 

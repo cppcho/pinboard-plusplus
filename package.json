@@ -1,8 +1,6 @@
 {
   "name": "pinboard-plusplus",
   "version": "1.0.0",
-  "description": "",
-  "main": "api.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,9 +8,9 @@
     "type": "git",
     "url": "git+https://github.com/cppcho/pinboard-plusplus.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["pinboard"],
+  "author": "cppcho",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/cppcho/pinboard-plusplus/issues"
   },
@@ -33,7 +31,6 @@
     "gulp-util": "^3.0.7",
     "gulp-zip": "^3.2.0",
     "jquery": "^2.2.4",
-    "moment": "^2.13.0",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
   }

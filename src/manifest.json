@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "Pinboard++",
-  "version": "0.1.0",
-  "description": "Enhance you Pinboard experience.",
+  "version": "1.0.0",
+  "description": "Enhance your Pinboard experience.",
   "author": "cppcho",
   "icons": {
     "16": "img/icon-16.png",
@@ -10,12 +10,12 @@
     "128": "img/icon-128.png"
   },
   "browser_action": {
-    "default_icon": { // optional
-      "19": "img/ba-19.png", // optional
-      "38": "img/ba-38.png" // optional
+    "default_icon": {
+      "19": "img/ba-19.png",
+      "38": "img/ba-38.png"
     },
-    "default_title": "Pinboard++", // optional; shown in tooltip
-    "default_popup": "html/popup.html" // optional
+    "default_title": "Pinboard++",
+    "default_popup": "html/popup-empty-auth.html"
   },
   "options_ui": {
     "page": "html/options.html",
@@ -1339,13 +1339,15 @@
         "http://www.google.com/reviews/*"
       ],
       "css": [
+        "css/lib/tooltipster.css",
         "css/content.css"
       ],
       "js": [
         "js/lib/jquery.min.js",
+        "js/lib/jquery.tooltipster.min.js",
         "js/content.js"
-      ]
-      // "run_at": "document_end"
+      ],
+      "run_at": "document_end"
     }
   ]
 }

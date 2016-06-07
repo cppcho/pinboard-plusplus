@@ -3,17 +3,6 @@
   -webkit-box-sizing: border-box;
 }
 
-.options__header {
-  margin: 0 0 10px 0;
-}
-
-.options__token-error {
-  color: #d03232;
-  display: block;
-  width: 100%;
-  margin: -5px 0 5px 0;
-}
-
 .options__body input[type="text"] {
   display: block;
   width: 100%;
@@ -24,4 +13,29 @@
   display: block;
   width: 100%;
   margin: 0 0 10px 0;
+}
+
+.options__bottom {
+  overflow:hidden;
+  height: 2em;
+}
+
+.options__bottom a {
+  line-height: 2em;
+  text-decoration: none;
+}
+
+.options__bottom a:hover {
+  text-decoration: underline;
+}
+
+.options__status {
+  float: right;
+  font-weight: 600;
+  line-height: 2em;
+  color: #aaa;
+}
+
+.options__status--error {
+  color: #d03232;
 }

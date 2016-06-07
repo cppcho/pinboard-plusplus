@@ -1,10 +1,10 @@
+import * as Constants from './constants';
 import Api from './api';
 import Utils from './utils';
-import * as Constants from './constants';
 
-// cached storage data and network requests
+// Cached storage data and network requests
 // options: refresh when options updated
-// tab, tags, bookmarks: clear when there is new bookmark / updated bookmark, deleted bookmarks
+// tags, bookmarks: clear when there is new bookmark / updated bookmark, deleted bookmarks
 // null = not set
 const cachedData = {
   options: null,
@@ -15,7 +15,11 @@ const cachedData = {
 
 // helper functions
 
-// async
+/**
+ * Get options from storage
+ *
+ * @return {promise}
+ */
 function getOptions() {
   if (cachedData.options !== null) {
     return Promise.resolve(cachedData.options);
@@ -23,15 +27,18 @@ function getOptions() {
 
   return new Promise((resolve) => {
     chrome.storage.sync.get(Constants.OPTIONS_DEFAULT, (options) => {
-      console.log('storage.sync.get', options);
-
       cachedData.options = options;
       resolve(options);
     });
   });
 }
 
-// async
+/**
+ * Get bookmark info from url
+ *
+ * @param {string} url
+ * @return {promise} null or pinboard bookmark info object
+ */
 function getBookmark(url) {
   if (!Utils.isBookmarkable(url)) {
     return Promise.resolve(null);
@@ -42,13 +49,15 @@ function getBookmark(url) {
   }
 
   return getOptions()
-    .then(options => Api.getBookmark(options[Constants.OPTIONS_AUTH_TOKEN], url))
+    .then((options) => {
+      if (options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID]) {
+        return Api.getBookmark(options[Constants.OPTIONS_AUTH_TOKEN], url);
+      }
+      return {};
+    })
     .then((json) => {
-      console.log('getBookmark: ', json);
-
-      // json.posts must be array
       let bookmark = null;
-      if (json.posts.length > 0) {
+      if (json.posts && json.posts.length > 0) {
         bookmark = json.posts[0];
       }
       cachedData.bookmarks[url] = bookmark;
@@ -56,17 +65,24 @@ function getBookmark(url) {
     });
 }
 
-// async
+/**
+ * Get all tags
+ *
+ * @return {promise} array of tags
+ */
 function getTags() {
   if (cachedData.tags !== null) {
     return Promise.resolve(cachedData.tags);
   }
 
   return getOptions()
-    .then(options => Api.getTags(options[Constants.OPTIONS_AUTH_TOKEN]))
+    .then((options) => {
+      if (options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID]) {
+        return Api.getTags(options[Constants.OPTIONS_AUTH_TOKEN]);
+      }
+      return {};
+    })
     .then((json) => {
-      console.log('getTags: ', json);
-
       try {
         cachedData.tags = Object.keys(json);
         return cachedData.tags;
@@ -76,13 +92,22 @@ function getTags() {
     });
 }
 
-// async. check if url is bookmarked on pinboard
+/**
+ * Check if url is bookmarked on Pinboard
+ *
+ * @param {string} url
+ * @return {promise} true or false
+ */
 function isBookmarked(url) {
   return getBookmark(url).then(bookmark => bookmark !== null);
 }
 
-// set the browser action icon to pinned / unpinned
-// TODO
+/**
+ * Set the browser action icon for tabId to 'bookmarked' or not
+ *
+ * @param {boolean} bookmarked
+ * @param {integer} tabId
+ */
 function setIconBookmarked(bookmarked, tabId) {
   if (bookmarked) {
     chrome.browserAction.setIcon({
@@ -103,21 +128,19 @@ function setIconBookmarked(bookmarked, tabId) {
   }
 }
 
-// update browser action icon for tab
-// cache current tab
-// if currentTab is undefined, use cached tab
-function updateIconForTab(currentTab) {
-  console.log('cachedData.tab', cachedData.tab);
-  console.log('cacheTabAndUpdateIcon', currentTab);
-
+/**
+ * Update the browser action icon and its popup for current tab
+ *
+ * @param {object} currentTab if undefined, use the cached tab, otherwise cache this tab as currentTab
+ */
+function updateIconAndPopupForTab(currentTab) {
   let tab;
+
   if (typeof currentTab === 'undefined') {
     tab = cachedData.tab;
   } else {
     cachedData.tab = tab = currentTab;
   }
-
-  console.log('cachedData', cachedData);
 
   if (!tab || !tab.id || tab.id === chrome.tabs.TAB_ID_NONE || !tab.url) {
     return;
@@ -126,20 +149,31 @@ function updateIconForTab(currentTab) {
   const tabId = tab.id;
   const tabUrl = tab.url;
 
-  if (!Utils.isBookmarkable(tabUrl)) {
-    setIconBookmarked(false, tabId);
-  } else {
-    isBookmarked(tabUrl)
-      .then((bookmarked) => { setIconBookmarked(bookmarked, tabId); });
-  }
+  getOptions()
+    .then((options) => {
+      if (options[Constants.OPTIONS_AUTH_TOKEN].length === 0) {
+        setIconBookmarked(false, tabId);
+        chrome.browserAction.setPopup({ popup: 'html/popup-empty-auth.html', tabId });
+      } else if (!options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID]) {
+        setIconBookmarked(false, tabId);
+        chrome.browserAction.setPopup({ popup: 'html/popup-invalid-auth.html', tabId });
+      } else if (!Utils.isBookmarkable(tabUrl)) {
+        setIconBookmarked(false, tabId);
+        chrome.browserAction.setPopup({ popup: 'html/popup-invalid-url.html', tabId });
+      } else {
+        isBookmarked(tabUrl)
+          .then((bookmarked) => {
+            setIconBookmarked(bookmarked, tabId);
+            chrome.browserAction.setPopup({ popup: 'html/popup.html', tabId });
+          });
+      }
+    });
 }
 
-// listeners
+// Listeners
 
-// reload option cache when storage changed
+// Reload options cache when storage changed
 chrome.storage.onChanged.addListener((changes) => {
-  console.log('storage.onChanged', changes);
-
   if (cachedData.options !== null) {
     const changeKeys = Object.keys(changes);
 
@@ -154,9 +188,8 @@ chrome.storage.onChanged.addListener((changes) => {
       });
 
       if (updated) {
-        // clear all other caches as the user may change
+        // clear all tags and bookmarks caches as the user may change
         // to another pinboard account
-        cachedData.tab = null;
         cachedData.tags = null;
         cachedData.bookmarks = {};
       }
@@ -164,39 +197,33 @@ chrome.storage.onChanged.addListener((changes) => {
   }
 });
 
-// update browser action icon when tab is activated
+// Update browser action icon when tab is activated
 chrome.tabs.onActivated.addListener((activeInfo) => {
-  console.log('tabs.onActivated', activeInfo);
-
   chrome.tabs.get(activeInfo.tabId, (tab) => {
-    updateIconForTab(tab);
+    updateIconAndPopupForTab(tab);
   });
 });
 
-// update browser action icon when url changed
+// Update browser action icon when url changed
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  console.log('tabs.onUpdated', tabId, changeInfo, tab);
-
   if (changeInfo.url) {
-    updateIconForTab(tab);
+    updateIconAndPopupForTab(tab);
   }
 });
 
-// update browser action icon when window focus changed
+// Update browser action icon when window focus changed
 chrome.windows.onFocusChanged.addListener((windowId) => {
-  console.log('windows.onFocusChanged', windowId);
-
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
-    // all chrome windows have lost focus
+    // All chrome windows have lost focus
     return;
   }
 
-  // get the active tab of the new focus window and update its icon
+  // Get the active tab of the new focus window and update its icon
   chrome.windows.get(windowId, { populate: true }, (window) => {
     if (window && window.tabs && Array.isArray(window.tabs)) {
       window.tabs.forEach((tab) => {
         if (tab.active) {
-          updateIconForTab(tab);
+          updateIconAndPopupForTab(tab);
         }
       });
     }
@@ -205,97 +232,66 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 
 // handle message from content scripts / popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('runtime.onMessage', message, sender, sendResponse);
+  console.log('onMessage', message);
 
   let async = false;
 
   if (message) {
     switch (message.type) {
-      case Constants.ACTION_GET_BOOKMARK_FROM_URL:
-        async = true;
-        getBookmark(message.url)
-          .then((bookmark) => { sendResponse(bookmark); });
-        break;
-      case Constants.ACTION_GET_POPUP_INFO_1: {
+      case Constants.ACTION_GET_BOOKMARK_FROM_URL: {
         async = true;
 
         const result = {
-          error: null,
+          bookmark: null,
           options: null,
-          tab: cachedData.tab,
+          error: null,
         };
 
         getOptions()
           .then((options) => {
-            console.log('get options: ', options);
             result.options = options;
 
-            if (!result.tab || !Utils.isBookmarkable(result.tab.url)) {
-              throw new Error(Constants.ERROR_INVALID_URL);
-            }
+            return getBookmark(message.url);
+          })
+          .then((bookmark) => {
+            result.bookmark = bookmark;
           })
           .catch((error) => {
-            console.log('catch error: ', error);
-            // set error
-            result.error = error.message;
+            result.error = error;
           })
           .then(() => {
-            console.log('sendResponse: ', result);
             sendResponse(result);
           });
         break;
       }
-      case Constants.ACTION_GET_POPUP_INFO_2: {
+      case Constants.ACTION_GET_POPUP_INFO: {
         async = true;
 
         const result = {
           error: null,    // error mesage, null for no error
-          // tab: null,      // null or tab
           bookmark: null, // null for no bookmark, otherwise array from pinboard
           tags: [],       // tags for autocomplete, must be array
-          // options: null,  // null or options
-          tab: cachedData.tab,
         };
-
-        // 1. get tags
-        // 2. get bookmark
 
         getTags()
           .then((tags) => {
-            console.log('get tags: ', tags);
-            result.tags = tags;   // must be array
-
-            if (!result.tab || !Utils.isBookmarkable(result.tab.url)) {
-              throw new Error(Constants.ERROR_INVALID_URL);
-            }
-
-            // get bookmark
-            return getBookmark(result.tab.url);
+            result.tags = tags;
+            return getBookmark(message.url);
           })
           .then((bookmark) => {
-            console.log('get bookmark: ', bookmark);
             result.bookmark = bookmark;
           })
           .catch((error) => {
-            console.log('catch error: ', error);
-            // set error
             result.error = error.message;
           })
           .then(() => {
-            console.log('sendResponse: ', result);
             sendResponse(result);
           });
         break;
       }
-      case Constants.ACTION_ADD_BOOKMARK: {
+      case Constants.ACTION_ADD_BOOKMARK:
+      case Constants.ACTION_DELETE_BOOKMARK: {
         async = true;
-
-        const url = message.url;
-        const title = message.title;
-        const description = message.description;
-        const tags = message.tags;
-        const isPrivate = message.private;      // true / false
-        const isReadLater = message.readLater;  // true / false
 
         const result = {
           error: null,    // error message, null for no error
@@ -303,15 +299,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         getOptions()
           .then((options) => {
-            const data = {
-              url,
-              description: title,
-              extended: description,
-              tags,
-              shared: isPrivate ? 'no' : 'yes',
-              toread: isReadLater ? 'yes' : 'no',
-            };
-            return Api.addBookmark(options[Constants.OPTIONS_AUTH_TOKEN], data);
+            // Add bookmark
+            if (message.type === Constants.ACTION_ADD_BOOKMARK) {
+              const data = {
+                url: message.url,
+                description: message.title,
+                extended: message.description,
+                tags: message.tags,
+                shared: message.private ? 'no' : 'yes',
+                toread: message.readLater ? 'yes' : 'no',
+              };
+              return Api.addBookmark(options[Constants.OPTIONS_AUTH_TOKEN], data);
+            }
+
+            // Or delete bookmark
+            return Api.deleteBookmark(options[Constants.OPTIONS_AUTH_TOKEN], message.url);
           })
           .then((json) => {
             if (json.result_code !== 'done') {
@@ -322,45 +324,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             result.error = error.message;
           })
           .then(() => {
-            // clear cache
             cachedData.tags = null;
             cachedData.bookmarks = {};
 
-            updateIconForTab();
-
-            sendResponse(result);
-          });
-        break;
-      }
-      case Constants.ACTION_DELETE_BOOKMARK: {
-        async = true;
-
-        const url = message.url;
-
-        const result = {
-          error: null,    // error message, null for no error
-        };
-
-        getOptions()
-          .then((options) =>
-            Api.deleteBookmark(options[Constants.OPTIONS_AUTH_TOKEN], url)
-          )
-          .then((json) => {
-            console.log('delete json', json);
-            if (json.result_code !== 'done') {
-              throw new Error(json.result_code);
-            }
-          })
-          .catch((error) => {
-            console.log('error', error);
-            result.error = error.message;
-          })
-          .then(() => {
-            // clear cache
-            cachedData.tags = null;
-            cachedData.bookmarks = {};
-
-            updateIconForTab();
+            updateIconAndPopupForTab();
 
             sendResponse(result);
           });
@@ -375,4 +342,3 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // return true to indicate you wish to send a response asynchronously
   return async;
 });
-

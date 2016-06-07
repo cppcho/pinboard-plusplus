@@ -1,6 +1,7 @@
-/node_modules
-/dist
-/src/js/lib
-/src/css/lib
 .DS_Store
 /archive.zip
+/dist
+/node_modules
+/out
+/src/css/lib
+/src/js/lib

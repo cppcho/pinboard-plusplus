@@ -136,6 +136,7 @@
         .addClass(TAGCOMPLETE_ITEM_SELECTED_CLASS);
     },
 
+    // update this.suggestions based on the last word
     updateSuggestionsForCurrentInput() {
       const suggestions = [];
       const tags = this.$element.val().split(/[\s,]+/);
@@ -155,6 +156,8 @@
       this.suggestions = suggestions.slice(0, TAGCOMPLETE_MAX_SUGGESTION);
     },
 
+    // replace last word with selected suggestion
+    // clear this.suggestions
     useSelectedSuggestion() {
       const selectedSuggestion = this.suggestions[this.selectedIndex];
       if (selectedSuggestion) {
