@@ -25,16 +25,18 @@ function processJsFile(fileName, debug) {
     };
   }
 
-  browserify({
+  const b = browserify({
     entries: `src/js/${fileName}.js`,
   }).transform(babelify.configure({
     presets: ['es2015'],
   })).bundle()
     .on('error', gutil.log)
     .pipe(source(`${fileName}.js`))
-    .pipe(buffer())
-    .pipe(uglify(uglifyConfigs))
-    .pipe(gulp.dest('dist/js'));
+    .pipe(buffer());
+  if (!debug) {
+    b.pipe(uglify(uglifyConfigs));
+  }
+  b.pipe(gulp.dest('dist/js'));
 }
 
 function buildJs(debug) {
