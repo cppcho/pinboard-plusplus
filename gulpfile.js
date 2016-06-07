@@ -128,7 +128,7 @@ gulp.task('build', ['clean'], () => {
 });
 
 gulp.task('zip', () => {
-  gulp.src('dist/*')
+  gulp.src('dist/**')
     .pipe(zip('archive.zip'))
     .pipe(gulp.dest('.'));
 });
