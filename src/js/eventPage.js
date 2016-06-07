@@ -199,6 +199,8 @@ chrome.storage.onChanged.addListener((changes) => {
 
 // Update browser action icon when tab is activated
 chrome.tabs.onActivated.addListener((activeInfo) => {
+  console.log('chrome.tabs.onActivated activeInfo: %o', activeInfo);
+
   chrome.tabs.get(activeInfo.tabId, (tab) => {
     updateIconAndPopupForTab(tab);
   });
@@ -206,13 +208,17 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
 
 // Update browser action icon when url changed
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.url) {
+  console.log('chrome.tabs.onUpdated tabId: %d changeInfo: %o tab: %o', tabId, changeInfo, tab);
+
+  if (changeInfo.status === 'complete' && tab.active) {
     updateIconAndPopupForTab(tab);
   }
 });
 
 // Update browser action icon when window focus changed
 chrome.windows.onFocusChanged.addListener((windowId) => {
+  console.log('chrome.windows.onFocusChanged windowId: %d', windowId);
+
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
     // All chrome windows have lost focus
     return;
