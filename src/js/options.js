@@ -83,34 +83,29 @@ $(document).ready(() => {
     // 3. If no, save the options to storage directly
     // 4. Otherwise query Pinboard to check the auth token is valid before saving
 
-    // Query Pinboard and setup OPTIONS_AUTH_TOKEN_IS_VALID
-    const q = new Promise((resolve) => {
-      if (inputOptions[Constants.OPTIONS_AUTH_TOKEN].length > 0) {
-        Api.getLastUpdated(inputOptions[Constants.OPTIONS_AUTH_TOKEN])
-          .then(() => {
-            inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = true;
-            resolve();
-          })
-          .catch(() => {
-            inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = false;
-            resolve();
-          });
-      } else {
-        inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = false;
-        resolve();
-      }
-    });
-
-    // Fetch existing options and check if auth token has been updated
     const p = new Promise((resolve) => {
       chrome.storage.sync.get(Constants.OPTIONS_DEFAULT, (options) => {
-        // if auth token is unchange, proceed to next step directly
+        // check if auth token is unchanged
         if (options[Constants.OPTIONS_AUTH_TOKEN] === inputOptions[Constants.OPTIONS_AUTH_TOKEN]) {
           inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID];
           resolve();
         } else {
-          // otherwise if auth token is updated, query Pinboard to check the auth token
-          resolve(q);
+          // otherwise when the auth token is updated, query Pinboard to check the auth token
+
+          if (inputOptions[Constants.OPTIONS_AUTH_TOKEN].length > 0) {
+            Api.getLastUpdated(inputOptions[Constants.OPTIONS_AUTH_TOKEN])
+              .then(() => {
+                inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = true;
+                resolve();
+              })
+              .catch(() => {
+                inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = false;
+                resolve();
+              });
+          } else {
+            inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = false;
+            resolve();
+          }
         }
       });
     });
