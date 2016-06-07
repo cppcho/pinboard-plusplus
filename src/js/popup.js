@@ -4,8 +4,8 @@ import Utils from './utils';
 
 // autofocus attribute is not working on chrome extension
 // https://code.google.com/p/chromium/issues/detail?id=111660#c7
-if (location.search !== '?foo') {
-  location.search = '?foo';
+if (location.search !== '?ppp') {
+  location.search = '?ppp';
   throw new Error();
   // load everything on the next page;
   // stop execution on this page
@@ -193,6 +193,9 @@ $(document).ready(() => {
             const h = `https://pinboard.in/search/u:${username}?query=${encodeURIComponent(bookmark.href)}`;
             $status.html(`<a href="${h}" target="_blank">bookmarked ${t}</a>`);
           }
+
+          // Focus the description field
+          $descriptionInput.focus();
 
           // bind events
 
