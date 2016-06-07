@@ -1,5 +1,5 @@
-import Api from './api';
 import * as Constants from './constants';
+import Api from './api';
 
 $(document).ready(() => {
   const ENTER_KEY = 13;
@@ -83,6 +83,7 @@ $(document).ready(() => {
     // 3. If no, save the options to storage directly
     // 4. Otherwise query Pinboard to check the auth token is valid before saving
 
+    // Query Pinboard and setup OPTIONS_AUTH_TOKEN_IS_VALID
     const q = new Promise((resolve) => {
       if (inputOptions[Constants.OPTIONS_AUTH_TOKEN].length > 0) {
         Api.getLastUpdated(inputOptions[Constants.OPTIONS_AUTH_TOKEN])
@@ -100,6 +101,7 @@ $(document).ready(() => {
       }
     });
 
+    // Fetch existing options and check if auth token has been updated
     const p = new Promise((resolve) => {
       chrome.storage.sync.get(Constants.OPTIONS_DEFAULT, (options) => {
         // if auth token is unchange, proceed to next step directly
@@ -113,6 +115,7 @@ $(document).ready(() => {
       });
     });
 
+    // Save new options to storage
     p.then(() => {
       if (verifyOptions(inputOptions)) {
         chrome.storage.sync.set(inputOptions, () => {

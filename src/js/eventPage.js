@@ -109,6 +109,8 @@ function isBookmarked(url) {
  * @param {integer} tabId
  */
 function setIconBookmarked(bookmarked, tabId) {
+  console.log('setIconBookmarked bookmarked: %s tabId: %d', bookmarked, tabId);
+
   if (bookmarked) {
     chrome.browserAction.setIcon({
       path: {
@@ -134,6 +136,8 @@ function setIconBookmarked(bookmarked, tabId) {
  * @param {object} currentTab if undefined, use the cached tab, otherwise cache this tab as currentTab
  */
 function updateIconAndPopupForTab(currentTab) {
+  console.log('updateIconAndPopupForTab currentTab: %o', currentTab);
+
   let tab;
 
   if (typeof currentTab === 'undefined') {
@@ -141,6 +145,8 @@ function updateIconAndPopupForTab(currentTab) {
   } else {
     cachedData.tab = tab = currentTab;
   }
+
+  console.log('updateIconAndPopupForTab tab: %o', tab);
 
   if (!tab || !tab.id || tab.id === chrome.tabs.TAB_ID_NONE || !tab.url) {
     return;
@@ -174,6 +180,8 @@ function updateIconAndPopupForTab(currentTab) {
 
 // Reload options cache when storage changed
 chrome.storage.onChanged.addListener((changes) => {
+  console.log('chrome.storage.onChanged changes: %o', changes);
+
   if (cachedData.options !== null) {
     const changeKeys = Object.keys(changes);
 
@@ -238,7 +246,7 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 
 // handle message from content scripts / popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('onMessage', message);
+  console.log('chrome.runtime.onMessage message: %o sender: %o', message, sender);
 
   let async = false;
 
@@ -340,7 +348,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         break;
       }
       default:
-        console.error('unexpected message.type %s', message.type);
+        console.error('chrome.runtime.onMessage unexpected message.type %s', message.type);
         break;
     }
   }

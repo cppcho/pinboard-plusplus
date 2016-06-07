@@ -2,9 +2,12 @@ import * as Constants from './constants';
 import Utils from './utils';
 
 chrome.storage.sync.get(Constants.OPTIONS_DEFAULT, (options) => {
+  console.log('options: %o', options);
+
   // check PIN_IN_GOOGLE and AUTH_TOKEN options
   if (!options[Constants.OPTIONS_PIN_IN_GOOGLE] ||
     !options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID]) {
+    console.log('skip content scripts');
     return;
   }
 
@@ -52,6 +55,8 @@ chrome.storage.sync.get(Constants.OPTIONS_DEFAULT, (options) => {
     let url = $searchResultAnchor.attr('href');
     url = url.replace(redirectRegex, '$7');
 
+    console.log('getUrlFromSearchResult url:', url);
+
     return url;
   }
 
@@ -59,6 +64,8 @@ chrome.storage.sync.get(Constants.OPTIONS_DEFAULT, (options) => {
    * Update the pin indicators on Google Search result page
    */
   function addPinIndicatorsToSearchResults() {
+    console.log('addPinIndicatorsToSearchResults');
+
     const $searchResultNode = $('li.g, div.g');
 
     $searchResultNode.each((index, node) => {
@@ -74,11 +81,13 @@ chrome.storage.sync.get(Constants.OPTIONS_DEFAULT, (options) => {
           }, (info) => {
             if (info.bookmark !== null) {
               // info.bookmark must be array here
-              console.log('info', info);
+              console.log('receive bookmark info: %o', info);
 
               const $h3 = $(node).find('h3');
 
               if ($h3.find(`.${PIN_INDICATOR_CLASS}`).length === 0) {
+                console.log('add pin icon for %s', info.bookmark.href);
+
                 stopObserveMutation();
 
                 // Add pin indicator next to search result link

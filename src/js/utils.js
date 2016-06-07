@@ -21,7 +21,7 @@ Utils.isBookmarkable = (url) => {
       protocol === 'file:'
     );
   } catch (e) {
-    console.log('[Utils.isBookmarkable] invalid url %s', url);
+    console.log('Utils.isBookmarkable invalid url: %s', url);
     return false;
   }
 };

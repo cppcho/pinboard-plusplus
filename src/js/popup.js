@@ -17,6 +17,8 @@ function getSelectedText() {
       chrome.tabs.executeScript({
         code: 'window.getSelection().toString();',
       }, (selection) => {
+        console.log('getSelectedText selection: %o', selection);
+
         if (selection && selection.length > 0) {
           resolve(selection[0]);
         }
@@ -31,7 +33,7 @@ function getOptionsAndTab() {
   return new Promise((resolve) => {
     chrome.storage.sync.get(Constants.OPTIONS_DEFAULT, (options) => {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        console.log(options, tabs);
+        console.log('getOptionsAndTab options: %o tab: %o', options, tabs);
 
         const tab = tabs[0];
         resolve({ options, tab });
@@ -46,6 +48,8 @@ function getTagsAndBookmark(url) {
       type: Constants.ACTION_GET_POPUP_INFO,
       url,
     }, (info) => {
+      console.log('getTagsAndBookmark info: %o', info);
+
       resolve(info);
     });
   });
@@ -96,8 +100,7 @@ function submitForm($form) {
     tags: formData.tags,
     private: formData.private === 'on',
     readLater: formData.read_later === 'on',
-  }, (result) => {
-    console.log(result);
+  }, () => {
     window.close();
   });
 }
@@ -133,6 +136,8 @@ $(document).ready(() => {
 
       // Should occur but for safety..
       if (!options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] || !tab.url || !Utils.isBookmarkable(tab.url)) {
+        console.error('invalid options/tab options: %o tab: %o', options, tab);
+
         $form.empty();
         return;
       }
@@ -213,8 +218,7 @@ $(document).ready(() => {
             chrome.runtime.sendMessage({
               type: Constants.ACTION_DELETE_BOOKMARK,
               url,
-            }, (result) => {
-              console.log(result);
+            }, () => {
               window.close();
             });
           });
