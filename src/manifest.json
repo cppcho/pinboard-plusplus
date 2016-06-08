@@ -15,7 +15,7 @@
       "38": "img/ba-38.png"
     },
     "default_title": "Pinboard++",
-    "default_popup": "html/popup-empty-auth.html"
+    "default_popup": "html/popup.html"
   },
   "options_ui": {
     "page": "html/options.html",
