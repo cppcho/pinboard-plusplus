@@ -223,8 +223,10 @@ $(document).ready(() => {
               addBookmark($form);
             } else if ((e.metaKey || e.ctrlKey) && e.which === BACKSPACE_KEY) {
               // Command/Ctrl + BACKSPACE is pressed
-              e.preventDefault();
-              deleteBookmark(url);
+              if (bookmark !== null) {
+                e.preventDefault();
+                deleteBookmark(url);
+              }
             }
           });
 
