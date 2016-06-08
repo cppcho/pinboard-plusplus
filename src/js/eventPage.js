@@ -149,6 +149,7 @@ function updateIconAndPopupForTab(currentTab) {
   console.log('updateIconAndPopupForTab tab: %o', tab);
 
   if (!tab || !tab.id || tab.id === chrome.tabs.TAB_ID_NONE || !tab.url) {
+    console.error('updateIconAndPopupForTab empty tab: %o', tab);
     return;
   }
 
@@ -167,10 +168,11 @@ function updateIconAndPopupForTab(currentTab) {
         setIconBookmarked(false, tabId);
         chrome.browserAction.setPopup({ popup: 'html/popup-invalid-url.html', tabId });
       } else {
+        chrome.browserAction.setPopup({ popup: 'html/popup.html', tabId });
+
         isBookmarked(tabUrl)
           .then((bookmarked) => {
             setIconBookmarked(bookmarked, tabId);
-            chrome.browserAction.setPopup({ popup: 'html/popup.html', tabId });
           });
       }
     });
@@ -355,4 +357,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // return true to indicate you wish to send a response asynchronously
   return async;
+});
+
+// Update browser action for the current tab when eventPage run
+// to prevent some cases that browser action not yet setup
+chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  console.log('chrome.tabs.query tabs: %o', tabs);
+  const tab = tabs[0];
+  if (tab) {
+    updateIconAndPopupForTab(tab);
+  }
 });
