@@ -75,7 +75,7 @@ function setBodyClass(bookmarked) {
   }
 }
 
-function submitForm($form) {
+function addBookmark($form) {
   setBodyClass(true);
 
   const serializedArray = $form.serializeArray();
@@ -105,6 +105,17 @@ function submitForm($form) {
   });
 }
 
+function deleteBookmark(url) {
+  setBodyClass(false);
+
+  chrome.runtime.sendMessage({
+    type: Constants.ACTION_DELETE_BOOKMARK,
+    url,
+  }, () => {
+    window.close();
+  });
+}
+
 $(document).ready(() => {
   setupGoToOptionsLink();
 
@@ -116,6 +127,7 @@ $(document).ready(() => {
   }
 
   const ENTER_KEY = 13;
+  const BACKSPACE_KEY = 8;
 
   const $status = $('#status');
   const $urlInput = $('#url');
@@ -206,26 +218,24 @@ $(document).ready(() => {
 
           $(':input').on('keydown', (e) => {
             if ((e.metaKey || e.ctrlKey) && e.which === ENTER_KEY) {
+              // Command/Ctrl + ENTER is pressed
               e.preventDefault();
-              submitForm($form);
+              addBookmark($form);
+            } else if ((e.metaKey || e.ctrlKey) && e.which === BACKSPACE_KEY) {
+              // Command/Ctrl + BACKSPACE is pressed
+              e.preventDefault();
+              deleteBookmark(url);
             }
           });
 
           $removeButton.on('click', (e) => {
             e.preventDefault();
-            setBodyClass(false);
-
-            chrome.runtime.sendMessage({
-              type: Constants.ACTION_DELETE_BOOKMARK,
-              url,
-            }, () => {
-              window.close();
-            });
+            deleteBookmark(url);
           });
 
           $doneButton.on('click', (e) => {
             e.preventDefault();
-            submitForm($form);
+            addBookmark($form);
           });
         });
     });
