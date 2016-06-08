@@ -131,50 +131,69 @@ function setIconBookmarked(bookmarked, tabId) {
 }
 
 /**
- * Update the browser action icon and its popup for current tab
+ * Async. Update the browser action icon and its popup for current tab
  *
- * @param {object} currentTab if undefined, use the cached tab, otherwise cache this tab as currentTab
+ * @param {object} if currentTab is undefined, use the last active tab in current window
  */
 function updateIconAndPopupForTab(currentTab) {
   console.log('updateIconAndPopupForTab currentTab: %o', currentTab);
 
-  let tab;
+  // 1. If currentTab exists, use currentTab
+  // 2. Else if currentTab is undefined, use cached tab
+  // 3. If cached tab does not exist, get the current active tab
 
-  if (typeof currentTab === 'undefined') {
-    tab = cachedData.tab;
-  } else {
-    cachedData.tab = tab = currentTab;
-  }
+  const getTab = new Promise((resolve) => {
+    if (typeof currentTab !== 'undefined') {
+      cachedData.tab = currentTab;
+      resolve(currentTab);
+    } else if (cachedData.tab !== null) {
+      resolve(cachedData.tab);
+    } else {
+      chrome.tabs.query({ active: true, currentWindow: true }, (ts) => {
+        console.log('chrome.tabs.query tabs:', ts);
 
-  console.log('updateIconAndPopupForTab tab: %o', tab);
+        const t = ts[0];
+        if (t) {
+          cachedData.tab = t;
+          resolve(t);
+        } else {
+          resolve(null);
+        }
+      });
+    }
+  });
 
-  if (!tab || !tab.id || tab.id === chrome.tabs.TAB_ID_NONE || !tab.url) {
-    console.error('updateIconAndPopupForTab empty tab: %o', tab);
-    return;
-  }
+  getTab
+    .then((tab) => {
+      console.log('updateIconAndPopupForTab getTab: %o', tab);
 
-  const tabId = tab.id;
-  const tabUrl = tab.url;
-
-  getOptions()
-    .then((options) => {
-      if (options[Constants.OPTIONS_AUTH_TOKEN].length === 0) {
-        setIconBookmarked(false, tabId);
-        chrome.browserAction.setPopup({ popup: 'html/popup-empty-auth.html', tabId });
-      } else if (!options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID]) {
-        setIconBookmarked(false, tabId);
-        chrome.browserAction.setPopup({ popup: 'html/popup-invalid-auth.html', tabId });
-      } else if (!Utils.isBookmarkable(tabUrl)) {
-        setIconBookmarked(false, tabId);
-        chrome.browserAction.setPopup({ popup: 'html/popup-invalid-url.html', tabId });
-      } else {
-        chrome.browserAction.setPopup({ popup: 'html/popup.html', tabId });
-
-        isBookmarked(tabUrl)
-          .then((bookmarked) => {
-            setIconBookmarked(bookmarked, tabId);
-          });
+      if (!tab || !tab.id || tab.id === chrome.tabs.TAB_ID_NONE || !tab.url) {
+        console.error('updateIconAndPopupForTab empty tab');
+        return;
       }
+
+      const tabId = tab.id;
+      const tabUrl = tab.url;
+
+      getOptions()
+        .then((options) => {
+          if (options[Constants.OPTIONS_AUTH_TOKEN].length === 0) {
+            setIconBookmarked(false, tabId);
+            chrome.browserAction.setPopup({ popup: 'html/popup-empty-auth.html', tabId });
+          } else if (!options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID]) {
+            setIconBookmarked(false, tabId);
+            chrome.browserAction.setPopup({ popup: 'html/popup-invalid-auth.html', tabId });
+          } else if (!Utils.isBookmarkable(tabUrl)) {
+            setIconBookmarked(false, tabId);
+            chrome.browserAction.setPopup({ popup: 'html/popup-invalid-url.html', tabId });
+          } else {
+            chrome.browserAction.setPopup({ popup: 'html/popup.html', tabId });
+            isBookmarked(tabUrl)
+              .then((bookmarked) => {
+                setIconBookmarked(bookmarked, tabId);
+              });
+          }
+        });
     });
 }
 
@@ -202,6 +221,9 @@ chrome.storage.onChanged.addListener((changes) => {
         // to another pinboard account
         cachedData.tags = null;
         cachedData.bookmarks = {};
+
+        // ..and also update the current browser action
+        updateIconAndPopupForTab();
       }
     }
   }
@@ -359,12 +381,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return async;
 });
 
-// Update browser action for the current tab when eventPage run
-// to prevent some cases that browser action not yet setup
-chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-  console.log('chrome.tabs.query tabs: %o', tabs);
-  const tab = tabs[0];
-  if (tab) {
-    updateIconAndPopupForTab(tab);
-  }
-});
+// Update browser action icon and popup html once this background script runtime
+// to prevent some cases that the browser action is not updated
+updateIconAndPopupForTab();
