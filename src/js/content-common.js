@@ -1,24 +1,29 @@
 import * as Constants from './constants';
 import Utils from './utils';
 
+const GOOGLE_MUTATION_OBSERVER_TARGET = 'body';
 const GOOGLE_SELECTOR_SEARCH_RESULT_NODE = 'li.g, div.g';
 const GOOGLE_SELECTOR_SEARCH_RESULT_LINK = 'h3 > a';
 const GOOGLE_SELECTOR_SEARCH_RESULT_LINK_WRAPPER = 'h3';
 
+const DUCKDUCKGO_MUTATION_OBSERVER_TARGET = 'div.content-wrap';
 const DUCKDUCKGO_SELECTOR_SEARCH_RESULT_NODE = 'div.result';
 const DUCKDUCKGO_SELECTOR_SEARCH_RESULT_LINK = 'h2 > a.result__a';
 const DUCKDUCKGO_SELECTOR_SEARCH_RESULT_LINK_WRAPPER = 'h2';
 
 export const addPinsToSearchResults = (page) => {
+  let mutationObserverTarget;
   let selectorSearchResultNode;
   let selectorSearchResultLink;
   let selectorSearchResultLinkWrapper;
 
   if (page === 'google') {
+    mutationObserverTarget = GOOGLE_MUTATION_OBSERVER_TARGET;
     selectorSearchResultNode = GOOGLE_SELECTOR_SEARCH_RESULT_NODE;
     selectorSearchResultLink = GOOGLE_SELECTOR_SEARCH_RESULT_LINK;
     selectorSearchResultLinkWrapper = GOOGLE_SELECTOR_SEARCH_RESULT_LINK_WRAPPER;
   } else if (page === 'duckduckgo') {
+    mutationObserverTarget = DUCKDUCKGO_MUTATION_OBSERVER_TARGET;
     selectorSearchResultNode = DUCKDUCKGO_SELECTOR_SEARCH_RESULT_NODE;
     selectorSearchResultLink = DUCKDUCKGO_SELECTOR_SEARCH_RESULT_LINK;
     selectorSearchResultLinkWrapper = DUCKDUCKGO_SELECTOR_SEARCH_RESULT_LINK_WRAPPER;
@@ -43,20 +48,20 @@ export const addPinsToSearchResults = (page) => {
     let mutationObserver = null;
 
     // Observe the subtree changes in <body>
-    const observerTarget = document.querySelector('body');
+    const observerTarget = document.querySelector(mutationObserverTarget);
     const observerConfig = {
       childList: true,
       subtree: true,
     };
 
     function startObserveMutation() {
-      if (mutationObserver) {
+      if (observerTarget && mutationObserver) {
         mutationObserver.observe(observerTarget, observerConfig);
       }
     }
 
     function stopObserveMutation() {
-      if (mutationObserver) {
+      if (observerTarget && mutationObserver) {
         mutationObserver.disconnect();
       }
     }
