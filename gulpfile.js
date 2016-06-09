@@ -148,11 +148,17 @@ gulp.task('build:debug', ['clean'], () => {
   buildMisc();
 });
 
-gulp.task('clean', () =>
+gulp.task('clean', () => {
   del([
     'dist/**',
-  ])
-);
+  ]);
+  del([
+    'archive/**',
+  ]);
+  del([
+    'archive.zip',
+  ]);
+});
 
 gulp.task('watch', () => {
   gulp.watch('src/js/*.js', ['js']);
