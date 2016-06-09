@@ -46,7 +46,8 @@ function buildJs(debug) {
   processJsFile('eventPage', debug);
   processJsFile('options', debug);
   processJsFile('popup', debug);
-  processJsFile('content', debug);
+  processJsFile('content-google', debug);
+  processJsFile('content-duckduckgo', debug);
 }
 
 function buildCss() {
