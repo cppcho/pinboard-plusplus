@@ -105,29 +105,47 @@ function buildMisc() {
   );
 }
 
-gulp.task('js', ['clean'], () => buildJs(false));
+gulp.task('js', () => buildJs(false));
 
-gulp.task('js:debug', ['clean'], () => buildJs(true));
+gulp.task('js:debug', () => buildJs(true));
 
-gulp.task('css', ['clean'], () => buildCss());
+gulp.task('css', () => buildCss());
 
-gulp.task('html', ['clean'], () => buildHtml());
+gulp.task('html', () => buildHtml());
 
-gulp.task('manifest', ['clean'], () => buildManifest());
+gulp.task('manifest', () => buildManifest());
 
-gulp.task('img', ['clean'], () => buildImg());
+gulp.task('img', () => buildImg());
 
-gulp.task('misc', ['clean'], () => buildMisc());
+gulp.task('misc', () => buildMisc());
 
-gulp.task('build', ['js', 'css', 'html', 'manifest', 'img', 'misc']);
+gulp.task('build', ['clean'], () => (
+  merge(
+    buildJs(false),
+    buildCss(),
+    buildHtml(),
+    buildImg(),
+    buildManifest(),
+    buildMisc()
+  )
+));
+
+gulp.task('build:debug', ['clean'], () => (
+  merge(
+    buildJs(true),
+    buildCss(),
+    buildHtml(),
+    buildImg(),
+    buildManifest(),
+    buildMisc()
+  )
+));
 
 gulp.task('zip', ['build'], () => (
   gulp.src('dist/**')
     .pipe(zip('archive.zip'))
     .pipe(gulp.dest('.'))
 ));
-
-gulp.task('build:debug', ['js:debug', 'css', 'html', 'manifest', 'img', 'misc']);
 
 gulp.task('clean', () => del(['dist/**', 'archive/**', 'archive.zip']));
 
