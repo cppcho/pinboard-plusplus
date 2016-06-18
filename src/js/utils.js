@@ -9,22 +9,9 @@ const Utils = {};
  * @param {string} url
  * @return {boolean}
  */
-Utils.isBookmarkable = (url) => {
-  try {
-    const protocol = new URL(url).protocol;
-    return (
-      protocol === 'http:' ||
-      protocol === 'https:' ||
-      protocol === 'javascript:' ||
-      protocol === 'mailto:' ||
-      protocol === 'ftp:' ||
-      protocol === 'file:'
-    );
-  } catch (e) {
-    console.log('Utils.isBookmarkable invalid url: %s', url);
-    return false;
-  }
-};
+Utils.isBookmarkable = (url) => (
+  url.trim().search(/^(https|http|javascript|mailto|ftp|file)(?=:)/) !== -1
+);
 
 /**
  * Get the username from API auth token
@@ -32,7 +19,7 @@ Utils.isBookmarkable = (url) => {
  * @param {string} valid API auth token
  * @return {string} username
  */
-Utils.getUsernameFromAuthToken = (authToken) => authToken.split(':')[0];
+Utils.getUsernameFromAuthToken = (authToken) => authToken.trim().split(':')[0];
 
 /**
  * Attempts to pluralize the singular word unless count is 1

@@ -140,6 +140,9 @@ $(document).ready(() => {
   const $doneButton = $('#done');
   const $userInfo = $('#user-info');
 
+  // Focus the description field
+  $descriptionInput.focus();
+
   // setup popup data
   getOptionsAndTab()
     .then((info) => {
@@ -186,7 +189,6 @@ $(document).ready(() => {
             getSelectedText()
               .then((selection) => {
                 $descriptionInput.val(String(selection).trim());
-                $descriptionInput.select();
               });
             $privateCheckBox.prop('checked', options[Constants.OPTIONS_PRIVATE]);
             $readLaterCheckBox.prop('checked', options[Constants.OPTIONS_READ_LATER]);
@@ -210,9 +212,6 @@ $(document).ready(() => {
             const h = `https://pinboard.in/search/u:${username}?query=${encodeURIComponent(bookmark.href)}`;
             $status.html(`<a href="${h}" target="_blank">bookmarked ${t}</a>`);
           }
-
-          // Focus the description field
-          $descriptionInput.focus();
 
           // bind events
 
