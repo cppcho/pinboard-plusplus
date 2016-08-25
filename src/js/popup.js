@@ -186,14 +186,44 @@ $(document).ready(() => {
 
           // setup form inputs
           if (bookmark === null) {
-            getSelectedText()
-              .then((selection) => {
-                $descriptionInput.val(String(selection).trim());
-              });
+            setBodyClass(false);
             $privateCheckBox.prop('checked', options[Constants.OPTIONS_PRIVATE]);
             $readLaterCheckBox.prop('checked', options[Constants.OPTIONS_READ_LATER]);
 
-            setBodyClass(false);
+            // get selected text from page and insert to description field
+            const p = new Promise((resolve) => {
+              getSelectedText()
+                .then((selection) => {
+                  $descriptionInput.val(String(selection).trim());
+                  resolve();
+                })
+                .catch(() => {
+                  resolve();
+                });
+            });
+
+            // then if quick add is enabled, bookmark the current page
+            p.then(() => {
+              if (options[Constants.OPTIONS_QUICK_ADD]) {
+                console.log('quick add');
+
+                chrome.runtime.sendMessage({
+                  type: Constants.ACTION_ADD_BOOKMARK,
+                  url: tab.url,
+                  title: tab.title,
+                  description: $descriptionInput.val(),
+                  tags: '',
+                  private: options[Constants.OPTIONS_PRIVATE],
+                  readLater: options[Constants.OPTIONS_READ_LATER],
+                }, () => {
+                  setBodyClass(true);
+                  $removeButton.show();
+                  const t = Utils.timeSince();
+                  const h = `https://pinboard.in/search/u:${username}?query=${encodeURIComponent(tab.url)}`;
+                  $status.html(`<a href="${h}" target="_blank">bookmarked ${t}</a>`);
+                });
+              }
+            });
           } else {
             url = bookmark.href;
 
@@ -205,9 +235,7 @@ $(document).ready(() => {
             $readLaterCheckBox.prop('checked', bookmark.toread === 'yes');
 
             $removeButton.show();
-
             setBodyClass(true);
-
             const t = Utils.timeSince(bookmark.time);
             const h = `https://pinboard.in/search/u:${username}?query=${encodeURIComponent(bookmark.href)}`;
             $status.html(`<a href="${h}" target="_blank">bookmarked ${t}</a>`);
@@ -222,7 +250,7 @@ $(document).ready(() => {
               addBookmark($form);
             } else if ((e.metaKey || e.ctrlKey) && e.which === BACKSPACE_KEY) {
               // Command/Ctrl + BACKSPACE is pressed
-              if (bookmark !== null) {
+              if ($removeButton.is(':visible')) {
                 e.preventDefault();
                 deleteBookmark(url);
               }
