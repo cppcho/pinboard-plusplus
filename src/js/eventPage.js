@@ -282,7 +282,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const result = {
           bookmark: null,
           options: null,
-          error: null,
+          error: false,
         };
 
         getOptions()
@@ -294,8 +294,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           .then((bookmark) => {
             result.bookmark = bookmark;
           })
-          .catch((error) => {
-            result.error = error;
+          .catch(() => {
+            result.error = true;
           })
           .then(() => {
             sendResponse(result);
@@ -306,7 +306,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         async = true;
 
         const result = {
-          error: null,    // error mesage, null for no error
+          error: false,   // error mesage, false for no error
           bookmark: null, // null for no bookmark, otherwise array from pinboard
           tags: [],       // tags for autocomplete, must be array
         };
@@ -319,8 +319,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           .then((bookmark) => {
             result.bookmark = bookmark;
           })
-          .catch((error) => {
-            result.error = error.message;
+          .catch(() => {
+            result.error = true;
           })
           .then(() => {
             sendResponse(result);
@@ -332,7 +332,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         async = true;
 
         const result = {
-          error: null,    // error message, null for no error
+          error: false,    // error message, false for no error
         };
 
         getOptions()
@@ -358,8 +358,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               throw new Error(json.result_code);
             }
           })
-          .catch((error) => {
-            result.error = error.message;
+          .catch(() => {
+            result.error = true;
           })
           .then(() => {
             cachedData.tags = null;

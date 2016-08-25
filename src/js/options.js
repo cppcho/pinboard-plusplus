@@ -8,6 +8,7 @@ $(document).ready(() => {
   const $privateInput = $('#private');
   const $readLaterInput = $('#read_later');
   const $pinInGoogleInput = $('#pin_in_google');
+  const $quickAddInput = $('#quick_add');
   const $status = $('#status');
 
   let isShowingInvalidTokenStatus = false;
@@ -60,7 +61,8 @@ $(document).ready(() => {
       options[Constants.OPTIONS_AUTH_TOKEN] === $authTokenInput.val().trim() &&
       options[Constants.OPTIONS_PRIVATE] === $privateInput.prop('checked') &&
       options[Constants.OPTIONS_READ_LATER] === $readLaterInput.prop('checked') &&
-      options[Constants.OPTIONS_PIN_IN_GOOGLE] === $pinInGoogleInput.prop('checked')
+      options[Constants.OPTIONS_PIN_IN_GOOGLE] === $pinInGoogleInput.prop('checked') &&
+      options[Constants.OPTIONS_QUICK_ADD] === $quickAddInput.prop('checked')
     );
   }
 
@@ -76,6 +78,7 @@ $(document).ready(() => {
       [Constants.OPTIONS_PRIVATE]: $privateInput.prop('checked'),
       [Constants.OPTIONS_READ_LATER]: $readLaterInput.prop('checked'),
       [Constants.OPTIONS_PIN_IN_GOOGLE]: $pinInGoogleInput.prop('checked'),
+      [Constants.OPTIONS_QUICK_ADD]: $quickAddInput.prop('checked'),
     };
 
     // 1. Get options from storage
@@ -89,23 +92,21 @@ $(document).ready(() => {
         if (options[Constants.OPTIONS_AUTH_TOKEN] === inputOptions[Constants.OPTIONS_AUTH_TOKEN]) {
           inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID];
           resolve();
-        } else {
-          // otherwise when the auth token is updated, query Pinboard to check the auth token
 
-          if (inputOptions[Constants.OPTIONS_AUTH_TOKEN].length > 0) {
-            Api.getLastUpdated(inputOptions[Constants.OPTIONS_AUTH_TOKEN])
-              .then(() => {
-                inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = true;
-                resolve();
-              })
-              .catch(() => {
-                inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = false;
-                resolve();
-              });
-          } else {
-            inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = false;
-            resolve();
-          }
+        // otherwise when the auth token is updated, query Pinboard to check the auth token
+        } else if (inputOptions[Constants.OPTIONS_AUTH_TOKEN].length > 0) {
+          Api.getLastUpdated(inputOptions[Constants.OPTIONS_AUTH_TOKEN])
+            .then(() => {
+              inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = true;
+              resolve();
+            })
+            .catch(() => {
+              inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = false;
+              resolve();
+            });
+        } else {
+          inputOptions[Constants.OPTIONS_AUTH_TOKEN_IS_VALID] = false;
+          resolve();
         }
       });
     });
@@ -134,6 +135,7 @@ $(document).ready(() => {
     $privateInput.prop('checked', options[Constants.OPTIONS_PRIVATE]);
     $readLaterInput.prop('checked', options[Constants.OPTIONS_READ_LATER]);
     $pinInGoogleInput.prop('checked', options[Constants.OPTIONS_PIN_IN_GOOGLE]);
+    $quickAddInput.prop('checked', options[Constants.OPTIONS_QUICK_ADD]);
 
     if (options[Constants.OPTIONS_AUTH_TOKEN].length > 0 &&
       !options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID]) {

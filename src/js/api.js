@@ -12,11 +12,16 @@ function makeRequest(authToken, path, data) {
     }).done((response) => {
       console.log('response: %o', response);
 
-      resolve(JSON.parse(response));
+      try {
+        resolve(JSON.parse(response));
+      } catch (e) {
+        console.error(e);
+        reject();
+      }
     }).fail((_, textStatus, error) => {
       console.error('textStatus: %s error: %s', textStatus, error);
 
-      reject(new Error(`${textStatus}: ${error}`));
+      reject();
     });
   });
 }

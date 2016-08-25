@@ -11,7 +11,7 @@ const DUCKDUCKGO_SELECTOR_SEARCH_RESULT_NODE = 'div.result';
 const DUCKDUCKGO_SELECTOR_SEARCH_RESULT_LINK = 'h2 > a.result__a';
 const DUCKDUCKGO_SELECTOR_SEARCH_RESULT_LINK_WRAPPER = 'h2';
 
-export const addPinsToSearchResults = (page) => {
+const addPinsToSearchResults = (page) => {
   let mutationObserverTarget;
   let selectorSearchResultNode;
   let selectorSearchResultLink;
@@ -160,3 +160,5 @@ export const addPinsToSearchResults = (page) => {
     startObserveMutation();
   });
 };
+
+export default addPinsToSearchResults;

@@ -44,6 +44,10 @@ Utils.pluralize = (count, singular, plural) => {
  * http://stackoverflow.com/a/23352499/5032533
  */
 Utils.timeSince = (dateString) => {
+  if (dateString === undefined) {
+    return '0 seconds ago';
+  }
+
   const timeStamp = new Date(dateString);
   const now = new Date();
   const secondsPast = (now.getTime() - timeStamp.getTime()) / 1000;
