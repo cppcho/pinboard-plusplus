@@ -107,6 +107,6 @@ a {
 }
 
 .popup--bookmarked .popup__body input[readonly] {
-  background-color: #fdf2f2;
+  background-color: #ffe3e3;
   opacity: 1;
 }
