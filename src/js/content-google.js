@@ -1,4 +1,4 @@
-import { addPinsToSearchResults } from './content-common';
+import addPinsToSearchResults from './content-common';
 
 $(document).ready(() => {
   addPinsToSearchResults('google');

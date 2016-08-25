@@ -173,8 +173,8 @@ $(document).ready(() => {
           let url = tab.url;
 
           // set error message (if any)
-          if (info.error !== null) {
-            $status.text(error);
+          if (error) {
+            $status.text('error');
           }
 
           // set tag autocomplete
