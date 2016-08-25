@@ -17,14 +17,22 @@ function getSelectedText() {
       chrome.tabs.executeScript({
         code: 'window.getSelection().toString();',
       }, (selection) => {
-        console.log('getSelectedText selection: %o', selection);
+        let selectedText = '';
 
-        if (selection && selection.length > 0) {
-          resolve(selection[0]);
+        if (chrome.runtime.lastError) {
+          console.error(chrome.runtime.lastError.message);
+        } else {
+          console.log('getSelectedText selection: %o', selection);
+
+          if (selection && selection.length > 0) {
+            selectedText = selection[0];
+          }
         }
+        resolve(selectedText);
       });
     } catch (e) {
-      throw e;
+      console.error(e);
+      resolve('');
     }
   });
 }
@@ -191,39 +199,31 @@ $(document).ready(() => {
             $readLaterCheckBox.prop('checked', options[Constants.OPTIONS_READ_LATER]);
 
             // get selected text from page and insert to description field
-            const p = new Promise((resolve) => {
-              getSelectedText()
-                .then((selection) => {
-                  $descriptionInput.val(String(selection).trim());
-                  resolve();
-                })
-                .catch(() => {
-                  resolve();
-                });
-            });
+            getSelectedText()
+              .then((selection) => {
+                $descriptionInput.val(String(selection).trim());
 
-            // then if quick add is enabled, bookmark the current page
-            p.then(() => {
-              if (options[Constants.OPTIONS_QUICK_ADD]) {
-                console.log('quick add');
+                // then if quick add is enabled, bookmark the current page
+                if (options[Constants.OPTIONS_QUICK_ADD]) {
+                  console.log('quick add');
 
-                chrome.runtime.sendMessage({
-                  type: Constants.ACTION_ADD_BOOKMARK,
-                  url: tab.url,
-                  title: tab.title,
-                  description: $descriptionInput.val(),
-                  tags: '',
-                  private: options[Constants.OPTIONS_PRIVATE],
-                  readLater: options[Constants.OPTIONS_READ_LATER],
-                }, () => {
-                  setBodyClass(true);
-                  $removeButton.show();
-                  const t = Utils.timeSince();
-                  const h = `https://pinboard.in/search/u:${username}?query=${encodeURIComponent(tab.url)}`;
-                  $status.html(`<a href="${h}" target="_blank">bookmarked ${t}</a>`);
-                });
-              }
-            });
+                  chrome.runtime.sendMessage({
+                    type: Constants.ACTION_ADD_BOOKMARK,
+                    url: tab.url,
+                    title: tab.title,
+                    description: $descriptionInput.val(),
+                    tags: '',
+                    private: options[Constants.OPTIONS_PRIVATE],
+                    readLater: options[Constants.OPTIONS_READ_LATER],
+                  }, () => {
+                    setBodyClass(true);
+                    $removeButton.show();
+                    const t = Utils.timeSince();
+                    const h = `https://pinboard.in/search/u:${username}?query=${encodeURIComponent(tab.url)}`;
+                    $status.html(`<a href="${h}" target="_blank">bookmarked ${t}</a>`);
+                  });
+                }
+              });
           } else {
             url = bookmark.href;
 
