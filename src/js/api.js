@@ -9,6 +9,7 @@ function makeRequest(authToken, path, data) {
       url: u,
       method: 'GET',
       data: d,
+      timeout: 3000,
     }).done((response) => {
       console.log('response: %o', response);
 
