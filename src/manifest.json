@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Pinboard++ for Pinboard",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Enhance your Pinboard experience.",
   "author": "cppcho",
   "minimum_chrome_version": "51",
