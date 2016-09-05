@@ -61,7 +61,7 @@ $(document).ready(() => {
       options[Constants.OPTIONS_AUTH_TOKEN] === $authTokenInput.val().trim() &&
       options[Constants.OPTIONS_PRIVATE] === $privateInput.prop('checked') &&
       options[Constants.OPTIONS_READ_LATER] === $readLaterInput.prop('checked') &&
-      options[Constants.OPTIONS_PIN_IN_GOOGLE] === $pinInGoogleInput.prop('checked') &&
+      // options[Constants.OPTIONS_PIN_IN_GOOGLE] === $pinInGoogleInput.prop('checked') &&  // TODO: Dsiable pin in Google temporary
       options[Constants.OPTIONS_QUICK_ADD] === $quickAddInput.prop('checked')
     );
   }
@@ -77,7 +77,7 @@ $(document).ready(() => {
       [Constants.OPTIONS_AUTH_TOKEN]: trimmedAuthToken,
       [Constants.OPTIONS_PRIVATE]: $privateInput.prop('checked'),
       [Constants.OPTIONS_READ_LATER]: $readLaterInput.prop('checked'),
-      [Constants.OPTIONS_PIN_IN_GOOGLE]: $pinInGoogleInput.prop('checked'),
+      // [Constants.OPTIONS_PIN_IN_GOOGLE]: $pinInGoogleInput.prop('checked'),  // TODO: Dsiable pin in Google temporary
       [Constants.OPTIONS_QUICK_ADD]: $quickAddInput.prop('checked'),
     };
 
@@ -134,7 +134,7 @@ $(document).ready(() => {
     $authTokenInput.val(options[Constants.OPTIONS_AUTH_TOKEN]);
     $privateInput.prop('checked', options[Constants.OPTIONS_PRIVATE]);
     $readLaterInput.prop('checked', options[Constants.OPTIONS_READ_LATER]);
-    $pinInGoogleInput.prop('checked', options[Constants.OPTIONS_PIN_IN_GOOGLE]);
+    // $pinInGoogleInput.prop('checked', options[Constants.OPTIONS_PIN_IN_GOOGLE]); // TODO: Dsiable pin in Google temporary
     $quickAddInput.prop('checked', options[Constants.OPTIONS_QUICK_ADD]);
 
     if (options[Constants.OPTIONS_AUTH_TOKEN].length > 0 &&

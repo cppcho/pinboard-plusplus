@@ -15,6 +15,16 @@
   margin: 0 0 10px 0;
 }
 
+.options__checkbox--disabled {
+  color: #d3d3d3;
+}
+
+.options__checkbox-help-text {
+  color: #c50000;
+  margin-left: 18px;
+  font-style: italic;
+}
+
 .options__bottom {
   overflow:hidden;
   height: 2em;

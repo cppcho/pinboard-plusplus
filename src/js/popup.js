@@ -183,6 +183,7 @@ $(document).ready(() => {
           // set error message (if any)
           if (error) {
             $status.text('error');
+            return;
           }
 
           // set tag autocomplete
