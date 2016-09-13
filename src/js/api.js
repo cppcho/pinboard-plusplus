@@ -1,5 +1,5 @@
 function makeRequest(authToken, path, data) {
-  const d = $.extend({}, { format: 'json', auth_token: authToken }, data);
+  const d = $.extend({}, { format: 'json', auth_token: authToken, id: 'pinboard-plusplus' }, data);
   const u = `https://api.pinboard.in/v1/${path}`;
 
   console.log('%cmakeRequest url: %s $data: %o', 'background: blue; color: white', u, d);
