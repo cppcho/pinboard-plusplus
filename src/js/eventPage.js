@@ -44,7 +44,7 @@ function getBookmark(url) {
     return Promise.resolve(null);
   }
 
-  if (cachedData.bookmarks.hasOwnProperty(url)) {
+  if ({}.hasOwnProperty.call(cachedData.bookmarks, url)) {
     return Promise.resolve(cachedData.bookmarks[url]);
   }
 
@@ -210,7 +210,7 @@ chrome.storage.onChanged.addListener((changes) => {
       let updated = false;
 
       changeKeys.forEach((key) => {
-        if (Constants.OPTIONS_DEFAULT.hasOwnProperty(key)) {
+        if ({}.hasOwnProperty.call(Constants.OPTIONS_DEFAULT, key)) {
           cachedData.options[key] = changes[key].newValue;
           updated = true;
         }

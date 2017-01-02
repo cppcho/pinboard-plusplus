@@ -38,7 +38,7 @@ $(document).ready(() => {
   }
 
   /**
-   * Show "Saved" status message for 1 second
+   * Show "Saved" status message for 2 seconds
    * only when "Invalid API token" is not showing
    */
   function showSavedStatus() {
@@ -49,7 +49,7 @@ $(document).ready(() => {
         if (!isShowingInvalidTokenStatus) {
           $status.text('');
         }
-      }, 1000);
+      }, 2000);
     }
   }
 
