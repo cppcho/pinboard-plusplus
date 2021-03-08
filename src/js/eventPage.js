@@ -112,7 +112,7 @@ function setIconBookmarked(bookmarked, tabId) {
   console.log('setIconBookmarked bookmarked: %s tabId: %d', bookmarked, tabId);
 
   if (bookmarked) {
-    chrome.browserAction.setIcon({
+    chrome.action.setIcon({
       path: {
         19: 'img/ba-bookmarked-19.png',
         38: 'img/ba-bookmarked-38.png',
@@ -120,7 +120,7 @@ function setIconBookmarked(bookmarked, tabId) {
       tabId,
     });
   } else {
-    chrome.browserAction.setIcon({
+    chrome.action.setIcon({
       path: {
         19: 'img/ba-19.png',
         38: 'img/ba-38.png',
@@ -179,15 +179,15 @@ function updateIconAndPopupForTab(currentTab) {
         .then((options) => {
           if (options[Constants.OPTIONS_AUTH_TOKEN].length === 0) {
             setIconBookmarked(false, tabId);
-            chrome.browserAction.setPopup({ popup: 'html/popup-empty-auth.html', tabId });
+            chrome.action.setPopup({ popup: 'html/popup-empty-auth.html', tabId });
           } else if (!options[Constants.OPTIONS_AUTH_TOKEN_IS_VALID]) {
             setIconBookmarked(false, tabId);
-            chrome.browserAction.setPopup({ popup: 'html/popup-invalid-auth.html', tabId });
+            chrome.action.setPopup({ popup: 'html/popup-invalid-auth.html', tabId });
           } else if (!Utils.isBookmarkable(tabUrl)) {
             setIconBookmarked(false, tabId);
-            chrome.browserAction.setPopup({ popup: 'html/popup-invalid-url.html', tabId });
+            chrome.action.setPopup({ popup: 'html/popup-invalid-url.html', tabId });
           } else {
-            chrome.browserAction.setPopup({ popup: 'html/popup.html', tabId });
+            chrome.action.setPopup({ popup: 'html/popup.html', tabId });
             isBookmarked(tabUrl)
               .then((bookmarked) => {
                 setIconBookmarked(bookmarked, tabId);

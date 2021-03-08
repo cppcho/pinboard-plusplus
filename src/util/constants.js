@@ -18,7 +18,6 @@ export const OPTIONS_DEFAULT = {
   [OPTIONS_AUTH_TOKEN]: '',
   [OPTIONS_PRIVATE]: true,
   [OPTIONS_READ_LATER]: false,
-  [OPTIONS_PIN_IN_GOOGLE]: false,
   [OPTIONS_AUTH_TOKEN_IS_VALID]: false,
   [OPTIONS_QUICK_ADD]: true,
 };
