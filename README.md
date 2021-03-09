@@ -5,13 +5,6 @@
 
 A simple Google Chrome extension for [Pinboard](https://pinboard.in).
 
-# Installation
-
-```
-npm install
-gulp build
-```
-
 # License
 
 MIT

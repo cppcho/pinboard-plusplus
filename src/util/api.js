@@ -1,46 +1,34 @@
-fetch(url).then(data => data.text()).then(data => {
-  document.querySelector(selector).innerHTML = data
-}).then(completeCallback)
+// TODO: limit rate to 1 per 3sec
+// TODO: timeout fetch API
 
-function makeRequest(authToken, path, data) {
-  const d = $.extend({}, { format: 'json', auth_token: authToken, id: 'pinboard-plusplus' }, data);
-  const u = `https://api.pinboard.in/v1/${path}`;
+async function makeRequest(authToken, path, params) {
+  const p = {
+    format: "json",
+    auth_token: authToken,
+    id: "pinboard-plusplus",
+    ...params,
+  };
+  const url = new URL(`https://api.pinboard.in/v1/${path}`);
+  url.search = new URLSearchParams(p).toString();
 
-  console.debug('%cmakeRequest url: %s $data: %o', 'background: blue; color: white', u, d);
+  console.debug("%cmakeRequest url: %s", "background: blue; color: white", url);
 
-  return new Promise((resolve, reject) => {
-    $.ajax({
-      url: u,
-      method: 'GET',
-      data: d,
-      timeout: 3000,
-    }).done((response) => {
-      console.log('response: %o', response);
+  const response = await fetch(url);
+  console.log("response: %o", response);
 
-      try {
-        resolve(JSON.parse(response));
-      } catch (e) {
-        console.error(e);
-        reject();
-      }
-    }).fail((_, textStatus, error) => {
-      console.error('textStatus: %s error: %s', textStatus, error);
-
-      reject();
-    });
-  });
+  // TODO: check response.ok and throw (reject) if error
+  return response.json();
 }
 
-const Api = {};
+export default {
+  getLastUpdated: (authToken) => makeRequest(authToken, "posts/update"),
 
-Api.getLastUpdated = (authToken) => makeRequest(authToken, 'posts/update');
+  addBookmark: (authToken, data) => makeRequest(authToken, "posts/add", data),
 
-Api.addBookmark = (authToken, data) => makeRequest(authToken, 'posts/add', data);
+  deleteBookmark: (authToken, url) =>
+    makeRequest(authToken, "posts/delete", { url }),
 
-Api.deleteBookmark = (authToken, url) => makeRequest(authToken, 'posts/delete', { url });
+  getBookmark: (authToken, url) => makeRequest(authToken, "posts/get", { url }),
 
-Api.getBookmark = (authToken, url) => makeRequest(authToken, 'posts/get', { url });
-
-Api.getTags = (authToken) => makeRequest(authToken, 'tags/get');
-
-export default Api;
+  getTags: (authToken) => makeRequest(authToken, "tags/get"),
+};

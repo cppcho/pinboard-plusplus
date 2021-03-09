@@ -8,8 +8,6 @@ import {
 import Api from "util/api";
 import "./options.css";
 
-const ENTER_KEY = 13;
-
 const elAuthTokenInput = document.getElementById("auth-token");
 const elPrivateInput = document.getElementById("private");
 const elReadLaterInput = document.getElementById("read-later");
@@ -28,6 +26,9 @@ function getLocalOptions() {
 elSaveButton.addEventListener("click", async function (event) {
   const authToken = elAuthTokenInput.value.trim();
   elAuthTokenInput.value = authToken;
+
+  const aa = await Api.getLastUpdated("cppcho:D1E7D633C8D202A956E7");
+  console.log(aa);
 
   const inputOptions = {
     [OPTIONS_AUTH_TOKEN]: authToken,

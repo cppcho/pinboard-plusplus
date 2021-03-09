@@ -1,4 +1,14 @@
 {
   "parser": "@babel/eslint-parser",
-  "extends": ["plugin:prettier/recommended"]
+  "extends": ["airbnb-base", "plugin:prettier/recommended"],
+  "settings": { "import/resolver": { "node": { "paths": "src" } } },
+  "env": {
+    "browser": true
+  },
+  "globals": {
+    "chrome": "readonly"
+  },
+  "rules": {
+    "no-console": "off"
+  }
 }
