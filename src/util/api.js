@@ -20,15 +20,16 @@ async function makeRequest(authToken, path, params) {
   return response.json();
 }
 
-export default {
-  getLastUpdated: (authToken) => makeRequest(authToken, "posts/update"),
+export const getLastUpdated = (authToken) =>
+  makeRequest(authToken, "posts/update");
 
-  addBookmark: (authToken, data) => makeRequest(authToken, "posts/add", data),
+export const addBookmark = (authToken, data) =>
+  makeRequest(authToken, "posts/add", data);
 
-  deleteBookmark: (authToken, url) =>
-    makeRequest(authToken, "posts/delete", { url }),
+export const deleteBookmark = (authToken, url) =>
+  makeRequest(authToken, "posts/delete", { url });
 
-  getBookmark: (authToken, url) => makeRequest(authToken, "posts/get", { url }),
+export const getBookmark = (authToken, url) =>
+  makeRequest(authToken, "posts/get", { url });
 
-  getTags: (authToken) => makeRequest(authToken, "tags/get"),
-};
+export const getTags = (authToken) => makeRequest(authToken, "tags/get");
